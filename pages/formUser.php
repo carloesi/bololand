@@ -1,5 +1,6 @@
 <?php
-if(!empty($_POST)){
+include_once('mensagens.php');
+if (!empty($_POST)) {
     $nome = trim($_POST["nome"]);
     $email = trim($_POST["email"]);
     $tel = trim($_POST["tel"]);
@@ -10,20 +11,40 @@ if(!empty($_POST)){
     $logradouro = trim($_POST["logradouro"]);
     $bairro = trim($_POST["bairro"]);
     $cidade = trim($_POST["cidade"]);
-    $uf = trim($_POST["uf"]);
-
-
+    $uf = trim($_POST["uf"]); 
     
-    $sql="insert into endereco (cep, logradouro, bairro, cidade, uf) values('$cep', '$logradouro', '$bairro', '$cidade', '$uf')";
-    $sqlUser = " insert into usuario (nome, email, tel, numero, complemento, senha, cep) value('$nome', '$email', '$tel','$numero','$complemento','$senha','$cep')";
     
-    $conn = mysqli_connect("localhost", "root", "","bololand");
+
+    $sql = "insert into endereco (cep, logradouro, bairro, cidade, uf) values ('$cep' , '$logradouro', '$bairro', '$cidade', '$uf')";
+
+    $sqlUser = "insert into usuario (nome, email, tel, numero, complemento, senha, cep) values ('$nome', '$email', '$tel', '$numero', '$complemento', '$senha', '$cep')";
+
+    $sqlCep = "select cep from endereco where cep = $cep";
+    
+    //Conecta o banco de dados
+    $conn = mysqli_connect(LOCAL, USER, PASS, BASE);
     mysqli_set_charset($conn, "utf8");
-    mysqli_query($conn, htmlspecialchars($sql)) or die  (mysqli_error($conn));
-    mysqli_query($conn, htmlspecialchars($sqlUser)) or die  (mysqli_error($conn));
-    mysqli_close($conn);
 
+    //Busca do CEP - Endereco
+    $result = mysqli_query($conn, htmlspecialchars($sqlCep)) or die(mysqli_error($conn));
+     
+    if (mysqli_num_rows($result) == 0) {
+        //Cadastro do CEP - Endereco
+        mysqli_query($conn, htmlspecialchars($sql)) or die(mysqli_error($conn));
+    }
+    //Cadastro do Usuario
+    $salvo = mysqli_query($conn, htmlspecialchars($sqlUser)) or die(mysqli_error($conn));
+    if ($salvo){
+        //echo "<div class='alert alert-success'> Salvo </div>";
+        aviso("Salvo");
+    } else {
+        //echo "<div class='alert alert-danger'> Erro ao salvar! </div>";
+        erro("Erro ao Salvar");
+    }
+
+    mysqli_close($conn);
 }
+
 ?>
 
 <section class="container bg-branco">
@@ -31,11 +52,11 @@ if(!empty($_POST)){
     <form method="post" action="index.php?pag=cad">
         <div class="form-group">
             <label>Nome</label>
-            <input type="text" class="form-control" name="nome">
+            <input type="text" class="form-control" name="nome" required>
         </div>
         <div class="form-group">
             <label>E-mail</label>
-            <input type="email" class="form-control" name="email">
+            <input type="email" class="form-control" name="email" required>
         </div>
         <div class="form-group">
             <label>Telefone</label>
@@ -52,23 +73,23 @@ if(!empty($_POST)){
 
         <div class="form-group">
             <label>CEP</label>
-            <input type="text" class="form-control" name="cep" maxlength="9">
+            <input type="text" class="form-control" name="cep" maxlength="9" id="cep" onblur="pesquisacep(this.value);" required>
         </div>
         <div class="form-group">
             <label>Endereço</label>
-            <input type="text" class="form-control" name="logradouro" maxlength="150">
+            <input type="text" class="form-control" name="logradouro" maxlength="100" id="rua">
         </div>
         <div class="form-group">
             <label>Bairro</label>
-            <input type="text" class="form-control" name="bairro" maxlength="50">
+            <input type="text" class="form-control" name="bairro" maxlength="50" id="bairro">
         </div>
         <div class="form-group">
             <label>Cidade</label>
-            <input type="text" class="form-control" name="cidade" maxlength="50">
+            <input type="text" class="form-control" name="cidade" maxlength="50" id="cidade">
         </div>
         <div class="form-group">
             <label>Estado</label>
-            <input type="text" class="form-control" name="uf" maxlength="2">
+            <input type="text" class="form-control" name="uf" maxlength="2" id="uf">
         </div>
 
         <div class="form-group">
@@ -79,7 +100,5 @@ if(!empty($_POST)){
             <button type="submit" class="btn bg-azul branco">Enviar</button>
             <button type="reset" class="btn btn-danger branco">Cancelar</button>
         </div>
-
     </form>
 </section>
-
